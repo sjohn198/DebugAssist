@@ -32,22 +32,45 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+const axios_1 = __importDefault(require("axios"));
 function activate(context) {
-    let disposable = vscode.commands.registerCommand('debugAssist.getText', () => {
+    let disposable = vscode.commands.registerCommand('debugassist.getText', async () => {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
+            const selection = editor.selection;
             const document = editor.document;
-            const text = document.getText();
+            const text = document.getText(selection);
+            console.log(text.length);
+            if (text.length == 0) {
+                vscode.window.showWarningMessage("No text is selected");
+                return;
+            }
             vscode.window.showInformationMessage("Successfully captured the text!");
             console.log(text);
+            try {
+                await vscode.window.withProgress({
+                    location: vscode.ProgressLocation.Notification,
+                    title: "Sending to FastAPI...",
+                    cancellable: false
+                }, async (progress) => {
+                    console.log("attempting to send text");
+                    const response = await axios_1.default.post('http://localhost:8000/api/test-extension-connection', { selected_text: text });
+                    const content = response.data;
+                    console.log("Backend response: ", content.message);
+                    vscode.window.showInformationMessage(`Backend says: ${content.message}`);
+                });
+            }
+            catch (error) {
+                console.error("Error calling backend:", error);
+                vscode.window.showWarningMessage(`Error calling backend: ${error}`);
+            }
         }
         else {
             vscode.window.showWarningMessage("No editor is open");

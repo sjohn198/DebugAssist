@@ -9,14 +9,12 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:debugAssist.getText"
-  ],
+  "activationEvents": ["onCommand:debugassist.getText"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "debugAssist.getText",
+        "command": "debugassist.getText",
         "title": "DebugAssist: Get Text from Active Editor"
       }
     ]

@@ -1,0 +1,8 @@
+#backend
+backend/.env
+backend/venv/
+
+#extension
+debugassist/.vscode-test
+debugassist/out
+*.vsix

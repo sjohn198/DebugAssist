@@ -18,6 +18,10 @@
       {
         "command": "debugassist.getText",
         "title": "DebugAssist: Get Text from Active Editor"
+      },
+      {
+        "command": "debugassist.showWebview",
+        "title": "DebugAssist: Show Webview Panel"
       }
     ]
   },

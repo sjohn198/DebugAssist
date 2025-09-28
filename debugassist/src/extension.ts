@@ -1,11 +1,16 @@
 import * as vscode from 'vscode';
 import axios, { AxiosResponse } from 'axios';
+import { WebviewPanel } from './panels/WebviewPanel';
 
 interface ExtensionConnectResponse {
 	message: string;
 }
 
 export function activate(context: vscode.ExtensionContext) {
+
+	const showPanelCommand = vscode.commands.registerCommand('debugassist.showWebview', () => {
+		WebviewPanel.render(context.extensionUri);
+	});
 
 	let disposable = vscode.commands.registerCommand('debugassist.getText', async () => {
 		const editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
@@ -55,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(showPanelCommand);
 }
 
 // This method is called when your extension is deactivated

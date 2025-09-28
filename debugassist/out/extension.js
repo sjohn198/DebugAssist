@@ -11678,7 +11678,7 @@ __export(extension_exports, {
   deactivate: () => deactivate
 });
 module.exports = __toCommonJS(extension_exports);
-var vscode = __toESM(require("vscode"));
+var vscode2 = __toESM(require("vscode"));
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
@@ -15132,24 +15132,123 @@ var {
   mergeConfig: mergeConfig2
 } = axios_default;
 
+// src/panels/WebviewPanel.ts
+var vscode = __toESM(require("vscode"));
+
+// src/utilities/getUri.ts
+var import_vscode = require("vscode");
+function getUri(webview, extensionUri, pathList) {
+  return webview.asWebviewUri(import_vscode.Uri.joinPath(extensionUri, ...pathList));
+}
+
+// src/utilities/getNonce.ts
+function getNonce() {
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
+// src/panels/WebviewPanel.ts
+var WebviewPanel = class _WebviewPanel {
+  static currentPanel;
+  _panel;
+  _disposables = [];
+  constructor(panel, extensionUri) {
+    this._panel = panel;
+    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
+    this._setWebviewMessageListener(this._panel.webview);
+  }
+  static render(extensionUri) {
+    if (_WebviewPanel.currentPanel) {
+      _WebviewPanel.currentPanel._panel.reveal(vscode.ViewColumn.One);
+    } else {
+      const panel = vscode.window.createWebviewPanel(
+        "showMyWebview",
+        "My Webview",
+        vscode.ViewColumn.One,
+        {
+          enableScripts: true,
+          localResourceRoots: [vscode.Uri.joinPath(extensionUri, "webview-ui")]
+        }
+      );
+      _WebviewPanel.currentPanel = new _WebviewPanel(panel, extensionUri);
+    }
+  }
+  dispose() {
+    _WebviewPanel.currentPanel = void 0;
+    this._panel.dispose();
+    while (this._disposables.length) {
+      this._disposables.pop()?.dispose();
+    }
+  }
+  _getWebviewContent(webview, extensionUri) {
+    const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
+    const scriptUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
+    const nonce = getNonce();
+    return (
+      /*html*/
+      `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+          <link rel="stylesheet" type="text/css" href="${stylesUri}">
+          <title>My Webview</title>
+        </head>
+        <body>
+          <h1>Send a Message</h1>
+          <input type="text" id="message-input" placeholder="Type something..."/>
+          <button id="send-button">Send</button>
+          <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+        </body>
+      </html>
+    `
+    );
+  }
+  _setWebviewMessageListener(webview) {
+    webview.onDidReceiveMessage(
+      (message) => {
+        const command = message.command;
+        const text = message.text;
+        switch (command) {
+          case "sendMessage":
+            vscode.window.showInformationMessage(`You sent: ${text}`);
+            return;
+        }
+      },
+      void 0,
+      this._disposables
+    );
+  }
+};
+
 // src/extension.ts
 function activate(context) {
-  let disposable = vscode.commands.registerCommand("debugassist.getText", async () => {
-    const editor = vscode.window.activeTextEditor;
+  const showPanelCommand = vscode2.commands.registerCommand("debugassist.showWebview", () => {
+    WebviewPanel.render(context.extensionUri);
+  });
+  let disposable = vscode2.commands.registerCommand("debugassist.getText", async () => {
+    const editor = vscode2.window.activeTextEditor;
     if (editor) {
       const selection = editor.selection;
       const document2 = editor.document;
       const text = document2.getText(selection);
       console.log(text.length);
       if (text.length == 0) {
-        vscode.window.showWarningMessage("No text is selected");
+        vscode2.window.showWarningMessage("No text is selected");
         return;
       }
-      vscode.window.showInformationMessage("Successfully captured the text!");
+      vscode2.window.showInformationMessage("Successfully captured the text!");
       console.log(text);
       try {
-        await vscode.window.withProgress({
-          location: vscode.ProgressLocation.Notification,
+        await vscode2.window.withProgress({
+          location: vscode2.ProgressLocation.Notification,
           title: "Sending to FastAPI...",
           cancellable: false
         }, async (progress) => {
@@ -15160,17 +15259,18 @@ function activate(context) {
           );
           const content = response.data;
           console.log("Backend response: ", content.message);
-          vscode.window.showInformationMessage(`Backend says: ${content.message}`);
+          vscode2.window.showInformationMessage(`Backend says: ${content.message}`);
         });
       } catch (error) {
         console.error("Error calling backend:", error);
-        vscode.window.showWarningMessage(`Error calling backend: ${error}`);
+        vscode2.window.showWarningMessage(`Error calling backend: ${error}`);
       }
     } else {
-      vscode.window.showWarningMessage("No editor is open");
+      vscode2.window.showWarningMessage("No editor is open");
     }
   });
   context.subscriptions.push(disposable);
+  context.subscriptions.push(showPanelCommand);
 }
 function deactivate() {
 }

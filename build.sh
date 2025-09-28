@@ -10,7 +10,7 @@ docker compose up --build -d --wait
 
 docker compose ps
 
-#pushd is more standard than cd to make it easy to track where the script came from
+#pushd is more standard than cd to make it easy to track what directory the script came from
 pushd debugassist > /dev/null
 npm run compile
 code --new-window --verbose \

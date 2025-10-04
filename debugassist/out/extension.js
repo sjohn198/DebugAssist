@@ -9993,7 +9993,7 @@ var require_form_data = __commonJS({
     var http2 = require("http");
     var https2 = require("https");
     var parseUrl = require("url").parse;
-    var fs = require("fs");
+    var fs2 = require("fs");
     var Stream = require("stream").Stream;
     var crypto2 = require("crypto");
     var mime = require_mime_types();
@@ -10060,7 +10060,7 @@ var require_form_data = __commonJS({
         if (value.end != void 0 && value.end != Infinity && value.start != void 0) {
           callback(null, value.end + 1 - (value.start ? value.start : 0));
         } else {
-          fs.stat(value.path, function(err, stat) {
+          fs2.stat(value.path, function(err, stat) {
             if (err) {
               callback(err);
               return;
@@ -11674,8 +11674,7 @@ var require_follow_redirects = __commonJS({
 // src/extension.ts
 var extension_exports = {};
 __export(extension_exports, {
-  activate: () => activate,
-  deactivate: () => deactivate
+  activate: () => activate
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode2 = __toESM(require("vscode"));
@@ -15132,14 +15131,8 @@ var {
   mergeConfig: mergeConfig2
 } = axios_default;
 
-// src/panels/WebviewPanel.ts
+// src/providers/SidebarProvider.ts
 var vscode = __toESM(require("vscode"));
-
-// src/utilities/getUri.ts
-var import_vscode = require("vscode");
-function getUri(webview, extensionUri, pathList) {
-  return webview.asWebviewUri(import_vscode.Uri.joinPath(extensionUri, ...pathList));
-}
 
 // src/utilities/getNonce.ts
 function getNonce() {
@@ -15151,89 +15144,70 @@ function getNonce() {
   return text;
 }
 
-// src/panels/WebviewPanel.ts
-var WebviewPanel = class _WebviewPanel {
-  static currentPanel;
-  _panel;
-  _disposables = [];
-  constructor(panel, extensionUri) {
-    this._panel = panel;
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-    this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
-    this._setWebviewMessageListener(this._panel.webview);
+// src/providers/SidebarProvider.ts
+var fs = __toESM(require("fs"));
+var SideBarProvider = class {
+  //underscore in the name indicates that a variable is private
+  _view;
+  _extensionUri;
+  constructor(extensionUri) {
+    this._extensionUri = extensionUri;
   }
-  static render(extensionUri) {
-    if (_WebviewPanel.currentPanel) {
-      _WebviewPanel.currentPanel._panel.reveal(vscode.ViewColumn.One);
-    } else {
-      const panel = vscode.window.createWebviewPanel(
-        "showMyWebview",
-        "My Webview",
-        vscode.ViewColumn.One,
-        {
-          enableScripts: true,
-          localResourceRoots: [vscode.Uri.joinPath(extensionUri, "webview-ui")]
-        }
-      );
-      _WebviewPanel.currentPanel = new _WebviewPanel(panel, extensionUri);
-    }
-  }
-  dispose() {
-    _WebviewPanel.currentPanel = void 0;
-    this._panel.dispose();
-    while (this._disposables.length) {
-      this._disposables.pop()?.dispose();
-    }
+  resolveWebviewView(webviewView, context, _token) {
+    this._view = webviewView;
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [vscode.Uri.joinPath(this._extensionUri, "webview-ui", "build")]
+    };
+    webviewView.webview.html = this._getWebviewContent(webviewView.webview, this._extensionUri);
+    this._setWebviewMessageListener(webviewView.webview);
   }
   _getWebviewContent(webview, extensionUri) {
-    const stylesUri = getUri(webview, extensionUri, ["webview-ui", "styles.css"]);
-    const scriptUri = getUri(webview, extensionUri, ["webview-ui", "main.js"]);
-    const nonce = getNonce();
-    return (
-      /*html*/
-      `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-          <link rel="stylesheet" type="text/css" href="${stylesUri}">
-          <title>My Webview</title>
-        </head>
-        <body>
-          <h1>Send a Message</h1>
-          <input type="text" id="message-input" placeholder="Type something..."/>
-          <button id="send-button">Send</button>
-          <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-        </body>
-      </html>
-    `
+    const buildPath = vscode.Uri.joinPath(extensionUri, "webview-ui", "build");
+    const indexPath = vscode.Uri.joinPath(buildPath, "index.html");
+    let html = fs.readFileSync(indexPath.fsPath, "utf-8");
+    html = html.replace(
+      /<(link|script).+?(href|src)="\/assets\/(.+?)"/g,
+      (match, tag, attribute, assetFile) => {
+        const assetPath = vscode.Uri.joinPath(buildPath, "assets", assetFile);
+        const assetUri = webview.asWebviewUri(assetPath);
+        return match.replace(`="/assets/${assetFile}"`, `="${assetUri}"`);
+      }
     );
+    const nonce = getNonce();
+    const csp = `default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';`;
+    html = html.replace(
+      /<meta http-equiv="Content-Security-Policy" content=".+?">/,
+      `<meta http-equiv="Content-Security-Policy" content="${csp}">`
+    );
+    html = html.replace(
+      /<script type="module"/,
+      `<script type="module" nonce="${nonce}"`
+    );
+    return html;
   }
   _setWebviewMessageListener(webview) {
     webview.onDidReceiveMessage(
-      (message) => {
-        const command = message.command;
-        const text = message.text;
+      (info) => {
+        const command = info.command;
+        const message = info.text;
         switch (command) {
           case "sendMessage":
-            vscode.window.showInformationMessage(`You sent: ${text}`);
+            vscode.window.showInformationMessage(`You sent ${message}`);
             return;
         }
-      },
-      void 0,
-      this._disposables
+      }
     );
   }
 };
 
 // src/extension.ts
 function activate(context) {
-  const showPanelCommand = vscode2.commands.registerCommand("debugassist.showWebview", () => {
-    WebviewPanel.render(context.extensionUri);
-  });
-  let disposable = vscode2.commands.registerCommand("debugassist.getText", async () => {
+  const sidebarProvider = new SideBarProvider(context.extensionUri);
+  context.subscriptions.push(
+    vscode2.window.registerWebviewViewProvider("queryFormView", sidebarProvider)
+  );
+  let getText = vscode2.commands.registerCommand("debugassist.getText", async () => {
     const editor = vscode2.window.activeTextEditor;
     if (editor) {
       const selection = editor.selection;
@@ -15269,15 +15243,11 @@ function activate(context) {
       vscode2.window.showWarningMessage("No editor is open");
     }
   });
-  context.subscriptions.push(disposable);
-  context.subscriptions.push(showPanelCommand);
-}
-function deactivate() {
+  context.subscriptions.push(getText);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  activate,
-  deactivate
+  activate
 });
 /*! Bundled license information:
 

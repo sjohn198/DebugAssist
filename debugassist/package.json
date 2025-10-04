@@ -18,12 +18,27 @@
       {
         "command": "debugassist.getText",
         "title": "DebugAssist: Get Text from Active Editor"
-      },
-      {
-        "command": "debugassist.showWebview",
-        "title": "DebugAssist: Show Webview Panel"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "queryFormContainer",
+          "title": "DebugAssist",
+          "icon": "$(code-review)"
+        }
+      ]
+    },
+    "views": {
+      "queryFormContainer": [
+        {
+          "id": "queryFormView",
+          "name": "DebugAssist",
+          "type": "webview",
+          "icon": "$(code-review)"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

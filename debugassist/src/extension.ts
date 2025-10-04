@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import axios, { AxiosResponse } from 'axios';
-import { WebviewPanel } from './panels/WebviewPanel';
+import SideBarProvider from "./providers/SideBarProvider";
 
 interface ExtensionConnectResponse {
 	message: string;
@@ -8,11 +8,13 @@ interface ExtensionConnectResponse {
 
 export function activate(context: vscode.ExtensionContext) {
 
-	const showPanelCommand = vscode.commands.registerCommand('debugassist.showWebview', () => {
-		WebviewPanel.render(context.extensionUri);
-	});
+	const sidebarProvider: SideBarProvider = new SideBarProvider(context.extensionUri);
 
-	let disposable = vscode.commands.registerCommand('debugassist.getText', async () => {
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider("queryFormView", sidebarProvider)
+	);
+
+	let getText = vscode.commands.registerCommand('debugassist.getText', async () => {
 		const editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
 
 		if (editor) {
@@ -59,9 +61,5 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	context.subscriptions.push(disposable);
-	context.subscriptions.push(showPanelCommand);
+	context.subscriptions.push(getText);
 }
-
-// This method is called when your extension is deactivated
-export function deactivate() {}

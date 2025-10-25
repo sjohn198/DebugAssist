@@ -14,12 +14,13 @@ export default function App() {
             command: 'sendMessage',
             text: userInput
         });
+        setUserInput("");
     };
 
     return (
         <div>
             <h1>Send a Message</h1>
-            <input type="text" id="message-input" placeholder="Type something..." onChange={(e) => handleTyping(e)}/>
+            <input type="text" id="message-input" placeholder="Type something..." onChange={(e) => handleTyping(e)} value={userInput}/>
             <button id="send-button" onClick={sendMessage}>Send</button>
             <script src="main.js"></script>
         </div>

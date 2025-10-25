@@ -11679,6 +11679,22 @@ __export(extension_exports, {
 module.exports = __toCommonJS(extension_exports);
 var vscode2 = __toESM(require("vscode"));
 
+// src/providers/SidebarProvider.ts
+var vscode = __toESM(require("vscode"));
+
+// src/utilities/getNonce.ts
+function getNonce() {
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
+// src/providers/SidebarProvider.ts
+var fs = __toESM(require("fs"));
+
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
   return function wrap() {
@@ -15132,20 +15148,6 @@ var {
 } = axios_default;
 
 // src/providers/SidebarProvider.ts
-var vscode = __toESM(require("vscode"));
-
-// src/utilities/getNonce.ts
-function getNonce() {
-  let text = "";
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
-
-// src/providers/SidebarProvider.ts
-var fs = __toESM(require("fs"));
 var SideBarProvider = class {
   //underscore in the name indicates that a variable is private
   _view;
@@ -15188,12 +15190,38 @@ var SideBarProvider = class {
   }
   _setWebviewMessageListener(webview) {
     webview.onDidReceiveMessage(
-      (info) => {
+      async (info) => {
         const command = info.command;
-        const message = info.text;
+        const prompt = info.text;
         switch (command) {
           case "sendMessage":
-            vscode.window.showInformationMessage(`You sent ${message}`);
+            vscode.window.showInformationMessage(`You sent ${prompt}`);
+            let code = await vscode.commands.executeCommand("debugAssist.getText");
+            console.log(`String in send message: ${code}`);
+            try {
+              console.log("attempting to send");
+              vscode.window.showInformationMessage(`Attempting to send`);
+              await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Sedning to FastAPI...",
+                cancellable: false
+              }, async (progress) => {
+                const response = await axios_default.post(
+                  "http://localhost:8000/api/test-extension-connection",
+                  {
+                    selected_text: prompt,
+                    code
+                  }
+                );
+                const content = response.data;
+                console.log(`We got the content: ${content.message}`);
+                vscode.window.showInformationMessage(`Backend says: ${content.message}`);
+              });
+            } catch (error) {
+              vscode.window.showInformationMessage(`Failed with error: ${error}`);
+              console.log(`Error occurred while sending to backend: ${error}`);
+            }
+            vscode.window.showInformationMessage(`Done`);
             return;
         }
       }
@@ -15207,12 +15235,19 @@ function activate(context) {
   context.subscriptions.push(
     vscode2.window.registerWebviewViewProvider("queryFormView", sidebarProvider)
   );
-  let getText = vscode2.commands.registerCommand("debugassist.getText", async () => {
+  let getText = vscode2.commands.registerCommand("debugAssist.getText", async () => {
+    vscode2.window.showInformationMessage("In get text");
     const editor = vscode2.window.activeTextEditor;
     if (editor) {
       const selection = editor.selection;
       const document2 = editor.document;
-      const text = document2.getText(selection);
+      let text = document2.getText(selection);
+      if (text.length == 0) {
+        text = document2.getText();
+        if (text.length == 0) {
+          return void 0;
+        }
+      }
       console.log(text.length);
       if (text.length == 0) {
         vscode2.window.showWarningMessage("No text is selected");
@@ -15220,25 +15255,7 @@ function activate(context) {
       }
       vscode2.window.showInformationMessage("Successfully captured the text!");
       console.log(text);
-      try {
-        await vscode2.window.withProgress({
-          location: vscode2.ProgressLocation.Notification,
-          title: "Sending to FastAPI...",
-          cancellable: false
-        }, async (progress) => {
-          console.log("attempting to send text");
-          const response = await axios_default.post(
-            "http://localhost:8000/api/test-extension-connection",
-            { selected_text: text }
-          );
-          const content = response.data;
-          console.log("Backend response: ", content.message);
-          vscode2.window.showInformationMessage(`Backend says: ${content.message}`);
-        });
-      } catch (error) {
-        console.error("Error calling backend:", error);
-        vscode2.window.showWarningMessage(`Error calling backend: ${error}`);
-      }
+      return text;
     } else {
       vscode2.window.showWarningMessage("No editor is open");
     }

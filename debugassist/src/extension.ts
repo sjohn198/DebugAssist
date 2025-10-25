@@ -1,26 +1,31 @@
 import * as vscode from 'vscode';
 import axios, { AxiosResponse } from 'axios';
-import SideBarProvider from "./providers/SideBarProvider";
-
-interface ExtensionConnectResponse {
-	message: string;
-}
+import SidebarProvider from "./providers/SidebarProvider";
+import ExtensionConnectResponse from "./extensionConnectResponse";
 
 export function activate(context: vscode.ExtensionContext) {
 
-	const sidebarProvider: SideBarProvider = new SideBarProvider(context.extensionUri);
+	const sidebarProvider: SidebarProvider = new SidebarProvider(context.extensionUri);
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider("queryFormView", sidebarProvider)
 	);
 
-	let getText = vscode.commands.registerCommand('debugassist.getText', async () => {
+	let getText = vscode.commands.registerCommand('debugAssist.getText', async () => {
+		vscode.window.showInformationMessage("In get text");
 		const editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
 
 		if (editor) {
 			const selection: vscode.Selection = editor.selection;
 			const document: vscode.TextDocument = editor.document;
-			const text: string = document.getText(selection);
+			let text: string = document.getText(selection);
+
+			if (text.length == 0) {
+				text = document.getText();
+				if (text.length == 0) {
+					return undefined;
+				}
+			}
 
 			console.log(text.length)
 
@@ -33,29 +38,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 			console.log(text);
 
-			try {
-				await vscode.window.withProgress({
-					location: vscode.ProgressLocation.Notification,
-					title: "Sending to FastAPI...",
-					cancellable: false
-				}, async (progress) => {
-					console.log("attempting to send text");
-					const response: AxiosResponse<ExtensionConnectResponse> = await axios.post(
-						'http://localhost:8000/api/test-extension-connection',
-						{ selected_text: text }
-					)
+			return text;
 
-					const content: ExtensionConnectResponse = response.data;
-
-					console.log("Backend response: ", content.message);
-
-					vscode.window.showInformationMessage(`Backend says: ${content.message}`);
-				});
-
-			} catch (error) {
-				console.error("Error calling backend:", error);
-				vscode.window.showWarningMessage(`Error calling backend: ${error}`);
-			}
 		} else {
 			vscode.window.showWarningMessage("No editor is open");
 		}

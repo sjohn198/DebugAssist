@@ -12,8 +12,9 @@ app = FastAPI()
 
 class Selection(BaseModel):
     selected_text: str
+    code: str
 
 @app.post("/api/test-extension-connection")
 async def connect_extension(selection: Selection):
     print(selection.selected_text)
-    return {"message": f"Successfully received: '{selection.selected_text}'"}
+    return {"message": f"Successfully received prompt: '{selection.selected_text}' and code: '{selection.code}"}

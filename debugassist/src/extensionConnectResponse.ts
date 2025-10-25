@@ -1,0 +1,3 @@
+interface ExtensionConnectResponse {
+	message: string;
+}

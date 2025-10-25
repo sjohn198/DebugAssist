@@ -3,6 +3,8 @@ import { getUri } from "../utilities/getUri"
 import { getNonce } from "../utilities/getNonce"
 import * as fs from "fs";
 import * as path from "path";
+import axios, { AxiosResponse } from "axios";
+import ExtensionConnectResponse from "../extensionConnectResponse";
 
 interface WebviewMessage {
     command: string;
@@ -66,13 +68,43 @@ export default class SideBarProvider implements vscode.WebviewViewProvider {
 
     private _setWebviewMessageListener(webview: vscode.Webview) {
         webview.onDidReceiveMessage(
-            (info: WebviewMessage) => {
+            async (info: WebviewMessage) => {
                 const command: string = info.command;
-                const message: string = info.text;
+                const prompt: string = info.text;
 
                 switch (command) {
                     case 'sendMessage':
-                        vscode.window.showInformationMessage(`You sent ${message}`);
+                        vscode.window.showInformationMessage(`You sent ${prompt}`);
+                        let code: string = await vscode.commands.executeCommand<string>('debugAssist.getText');
+
+                        console.log(`String in send message: ${code}`);
+                        try {
+                            console.log("attempting to send");
+                            vscode.window.showInformationMessage(`Attempting to send`);
+                            await vscode.window.withProgress({
+                                location: vscode.ProgressLocation.Notification,
+                                title: "Sedning to FastAPI...",
+                                cancellable: false
+                            }, async (progress) => {
+                                const response: AxiosResponse<ExtensionConnectResponse> = await axios.post(
+                                    'http://localhost:8000/api/test-extension-connection',
+                                    { 
+                                        selected_text: prompt,
+                                        code: code 
+                                    },
+                                );
+
+                                const content: ExtensionConnectResponse = response.data;
+                                console.log(`We got the content: ${content.message}`);
+                                vscode.window.showInformationMessage(`Backend says: ${content.message}`);
+
+                            })
+                        } catch (error) {
+                            vscode.window.showInformationMessage(`Failed with error: ${error}`);
+                            console.log(`Error occurred while sending to backend: ${error}`);
+                        }
+
+                        vscode.window.showInformationMessage(`Done`);
                         return;
                 }
             }

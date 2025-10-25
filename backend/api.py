@@ -18,3 +18,7 @@ class Selection(BaseModel):
 async def connect_extension(selection: Selection):
     print(selection.selected_text)
     return {"message": f"Successfully received prompt: '{selection.selected_text}' and code: '{selection.code}"}
+
+@app.post("/api/test-openai")
+async def test_openai():
+    return None

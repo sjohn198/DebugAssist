@@ -15177,7 +15177,7 @@ var SideBarProvider = class {
       }
     );
     const nonce = getNonce();
-    const csp = `default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';`;
+    const csp = `default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' 'unsafe-eval';`;
     html = html.replace(
       /<meta http-equiv="Content-Security-Policy" content=".+?">/,
       `<meta http-equiv="Content-Security-Policy" content="${csp}">`
@@ -15203,7 +15203,7 @@ var SideBarProvider = class {
               vscode.window.showInformationMessage(`Attempting to send`);
               await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
-                title: "Sedning to FastAPI...",
+                title: "Sending to FastAPI...",
                 cancellable: false
               }, async () => {
                 const response = await axios_default.post(

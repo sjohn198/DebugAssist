@@ -11,6 +11,8 @@
 
 General Notes:
 - Most important: Take advantage of structured outputs provided by Responses API!!!
+    - But this changes based on mode
 - All are returned as line text, line # pairs
     - Should prob have support for multiple lines
 - Need a modular system instructions for the Responses API that depends on what the user selects
+- Maybe send the system instructions with each prompt.

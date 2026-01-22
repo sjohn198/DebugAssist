@@ -15205,21 +15205,41 @@ var SideBarProvider = class {
                 location: vscode.ProgressLocation.Notification,
                 title: "Sedning to FastAPI...",
                 cancellable: false
-              }, async (progress) => {
+              }, async () => {
                 const response = await axios_default.post(
-                  "http://localhost:8000/api/test-extension-connection",
+                  "http://localhost:8000/api/test-openai",
                   {
-                    selected_text: prompt,
+                    prompt,
                     code
                   }
                 );
                 const content = response.data;
-                console.log(`We got the content: ${content.message}`);
-                vscode.window.showInformationMessage(`Backend says: ${content.message}`);
+                vscode.window.showInformationMessage(`Backend says: ${content}`);
+                if (this._view) {
+                  console.log("Provider: Found valid view, sending message...");
+                  this._view.webview.postMessage({
+                    command: "receiveMessage",
+                    text: content
+                  });
+                } else {
+                  console.error("Provider Error: this._view is undefined!");
+                  vscode.window.showErrorMessage("Error: Cannot update UI because the Webview is not connected.");
+                }
               });
             } catch (error) {
-              vscode.window.showInformationMessage(`Failed with error: ${error}`);
-              console.log(`Error occurred while sending to backend: ${error}`);
+              if (this._view) {
+                this._view.webview.postMessage({
+                  command: "receiveError",
+                  text: `Error: ${error}`
+                });
+              }
+              if (error instanceof AggregateError) {
+                vscode.window.showInformationMessage(error.errors);
+                console.log(`Aggregate errors occurred while sending to backend: ${error}`);
+              } else {
+                vscode.window.showInformationMessage(`Failed with error: ${error}`);
+                console.log(`Error occurred while sending to backend: ${error}`);
+              }
             }
             vscode.window.showInformationMessage(`Done`);
             return;
@@ -15254,6 +15274,7 @@ function activate(context) {
         return;
       }
       vscode2.window.showInformationMessage("Successfully captured the text!");
+      vscode2.window.showInformationMessage(text);
       console.log(text);
       return text;
     } else {

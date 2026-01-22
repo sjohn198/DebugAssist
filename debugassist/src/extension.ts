@@ -35,6 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			vscode.window.showInformationMessage("Successfully captured the text!");
+			vscode.window.showInformationMessage(text);
 
 			console.log(text);
 

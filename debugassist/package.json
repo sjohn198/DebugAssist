@@ -16,7 +16,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "debugassist.getText",
+        "command": "debugAssist.getText",
         "title": "DebugAssist: Get Text from Active Editor"
       }
     ],

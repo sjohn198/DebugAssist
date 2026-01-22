@@ -13,6 +13,7 @@ export default function App() {
     const [inclOptimizations, setInclOptimizations] = useState(false);
     const [inclStyle, setInclStyle] = useState(false);
     const [inclErrors, setInclErrors] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Helper to send logs to VS Code Output
     const logToVSCode = (msg: string) => {
@@ -25,6 +26,7 @@ export default function App() {
         console.log("useEffect mounted")
 
         const handleMessage = (event: MessageEvent) => {
+            setIsLoading(false);
             const message = event.data;
             
             // 2. Notify that a message arrived
@@ -56,7 +58,8 @@ export default function App() {
             optims: inclOptimizations,
             style: inclStyle
         });
-        setResponse(null); // Clear previous results
+        setResponse(null);
+        setIsLoading(true);
     };
 
     const handleErrors = () => {
@@ -108,6 +111,12 @@ export default function App() {
             <button onClick={sendMessage} style={{ width: '100%', padding: '8px' }}>
                 Analyze Code
             </button>
+
+            {isLoading && (
+                <div>
+                    <h3>Loading...</h3>
+                </div>
+            )}
 
             {response && (
                 <div style={{ marginTop: '15px', padding: '10px', border: '1px solid #ccc' }}>

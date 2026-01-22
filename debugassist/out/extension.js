@@ -15193,6 +15193,9 @@ var SideBarProvider = class {
       async (info) => {
         const command = info.command;
         const prompt = info.text;
+        const errors = info.errors;
+        const optims = info.optims;
+        const style = info.style;
         switch (command) {
           case "sendMessage":
             vscode.window.showInformationMessage(`You sent ${prompt}`);
@@ -15206,11 +15209,17 @@ var SideBarProvider = class {
                 title: "Sending to FastAPI...",
                 cancellable: false
               }, async () => {
+                console.log(`Errors: ${errors}`);
+                console.log(`Optims: ${optims}`);
+                console.log(`Style: ${style}`);
                 const response = await axios_default.post(
                   "http://localhost:8000/api/test-openai",
                   {
                     prompt,
-                    code
+                    code,
+                    errors,
+                    optims,
+                    style
                   }
                 );
                 const content = response.data;

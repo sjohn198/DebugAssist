@@ -17,6 +17,9 @@ app = FastAPI()
 class Selection(BaseModel):
     prompt: str
     code: str
+    errors: bool
+    optims: bool
+    style: bool
 
 class BasicOutput(BaseModel):
     number_of_errors: int
@@ -31,6 +34,7 @@ async def connect_extension(selection: Selection):
 
 @app.post("/api/test-openai")
 async def test_openai(selection: Selection):
+    print(selection)
     try:
         response = client.chat.completions.create(
             model="hf.co/LiquidAI/LFM2-1.2B-RAG-GGUF",
@@ -38,12 +42,21 @@ async def test_openai(selection: Selection):
             messages=[
                 {
                     "role": "system", 
-                    "content": """
-                    You are a strict code analysis tool. You do not write code. You only analyze input and output raw JSON. 
+                    "content": f"""
+                    You are an expert code debugger and tutor. You do not write code. You only analyze input and output raw JSON. 
+                    {"You will critique programming errors." if selection.errors else ""}
+                    {"You will recommend optimization improvements." if selection.optims else ""}
+                    {"You will recommend coding style improvements." if selection.style else ""}
+                    
                     Do not include markdown formatting, code blocks, or conversational text. Output ONLY the JSON object. 
+                    
                     I will give you code and the intended function of the code. Please respond with a json object with the 
-                    fields error_type, line_number, character_number and error_message wrapped in curly brackets. Fill those 
-                    fields out according to their names. Allow error_message to be verbose.
+                    following fields:
+                    
+                    1. error_type: The standard name of the error (e.g., NameError, SyntaxError).
+                    2. line_number: Just the integer number.
+                    3. character_number: Just the integer number.
+                    4. error_message: A verbose and helpful explanation. You must explain WHY the error occurred in this specific context and suggest HOW to fix it. Avoid generic compiler messages.
                     """ 
                 },
                 {

@@ -71,6 +71,9 @@ export default class SideBarProvider implements vscode.WebviewViewProvider {
             async (info: WebviewMessage) => {
                 const command: string = info.command;
                 const prompt: string = info.text;
+                const errors: bool = info.errors;
+                const optims: bool = info.optims;
+                const style: bool = info.style;
 
                 switch (command) {
                     case 'sendMessage':
@@ -86,11 +89,17 @@ export default class SideBarProvider implements vscode.WebviewViewProvider {
                                 title: "Sending to FastAPI...",
                                 cancellable: false
                             }, async () => {
+                                console.log(`Errors: ${errors}`);
+                                console.log(`Optims: ${optims}`);
+                                console.log(`Style: ${style}`);
                                 const response: AxiosResponse<ExtensionConnectResponse> = await axios.post(
                                     'http://localhost:8000/api/test-openai',
                                     { 
                                         prompt: prompt,
-                                        code: code 
+                                        code: code,
+                                        errors: errors,
+                                        optims: optims,
+                                        style: style
                                     },
                                 );
 

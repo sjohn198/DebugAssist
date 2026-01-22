@@ -10,6 +10,9 @@ interface ResponseData {
 export default function App() {
     const [userInput, setUserInput] = useState("");
     const [response, setResponse] = useState<ResponseData | null>(null);
+    const [inclOptimizations, setInclOptimizations] = useState(false);
+    const [inclStyle, setInclStyle] = useState(false);
+    const [inclErrors, setInclErrors] = useState(true);
 
     // Helper to send logs to VS Code Output
     const logToVSCode = (msg: string) => {
@@ -48,14 +51,53 @@ export default function App() {
         logToVSCode(`User clicked send: ${userInput}`);
         vscode.postMessage({
             command: 'sendMessage',
-            text: userInput
+            text: userInput,
+            errors: inclErrors,
+            optims: inclOptimizations,
+            style: inclStyle
         });
         setResponse(null); // Clear previous results
     };
 
+    const handleErrors = () => {
+        setInclErrors(!inclErrors);
+    }
+
+    const handleOptimizations = () => {
+        setInclOptimizations(!inclOptimizations);
+    }
+
+    const handleStyle = () => {
+        setInclStyle(!inclStyle);
+    }
+
     return (
         <div style={{ padding: '10px' }}>
             <h2>Debug Assist</h2>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={inclErrors}
+                    onChange={handleErrors}
+                />
+                Errors
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={inclOptimizations}
+                    onChange={handleOptimizations}
+                />
+                Optimizations
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={inclStyle}
+                    onChange={handleStyle}
+                />
+                Style
+            </label>
             <textarea 
                 rows={4}
                 style={{ width: '100%', marginBottom: '10px' }}
@@ -68,8 +110,8 @@ export default function App() {
             </button>
 
             {response && (
-                <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
-                    <h3>Result:</h3>
+                <div style={{ marginTop: '15px', padding: '10px', border: '1px solid #ccc' }}>
+                    <h3>Error/Suggestion:</h3>
                     {/* Render the specific field if it exists, or the whole object */}
                     <p>{response.error_message || JSON.stringify(response)}</p>
                 </div>

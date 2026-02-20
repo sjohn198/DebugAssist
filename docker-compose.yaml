@@ -8,3 +8,4 @@ services:
     environment:
       - AI_PROVIDER=local
       - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload

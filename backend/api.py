@@ -25,6 +25,10 @@ class BasicOutput(BaseModel):
     character_number: int
     error_message: str
 
+@app.get("/")
+def read_root():
+    return {"status": "ok", "message": "DebugAssist Backend is running"}
+
 @app.post("/api/test-extension-connection")
 async def connect_extension(selection: Selection):
     print(selection.prompt)

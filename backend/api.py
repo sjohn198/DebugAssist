@@ -2,7 +2,6 @@ import os
 import json
 from google import genai
 from google.genai import types
-from openai import OpenAI, APIConnectionError
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from pydantic import BaseModel

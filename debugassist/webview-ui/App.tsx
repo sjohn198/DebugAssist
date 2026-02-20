@@ -1,4 +1,5 @@
 import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
+import "./index.css";
 
 const vscode = acquireVsCodeApi();
 
@@ -76,41 +77,53 @@ export default function App() {
 
     return (
         <div style={{ padding: '10px' }}>
-            <h2>Debug Assist</h2>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={inclErrors}
-                    onChange={handleErrors}
-                />
-                Errors
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={inclOptimizations}
-                    onChange={handleOptimizations}
-                />
-                Optimizations
-            </label>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={inclStyle}
-                    onChange={handleStyle}
-                />
-                Style
-            </label>
+            <div>
+                <h2>Debug Assist</h2>
+            </div>
             <textarea 
                 rows={4}
-                style={{ width: '100%', marginBottom: '10px' }}
+                className="analyzeText"
                 placeholder="Type your prompt..." 
                 onChange={(e) => setUserInput(e.target.value)} 
                 value={userInput}
             />
-            <button onClick={sendMessage} style={{ width: '100%', padding: '8px' }}>
-                Analyze Code
-            </button>
+            <div>
+                <button onClick={sendMessage} className="analyzeButton">
+                    Analyze Code
+                </button>
+            </div>
+            <div className="filterCheckboxes">
+                <div className="checkboxLabels">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={inclErrors}
+                            onChange={handleErrors}
+                        />
+                        Errors
+                    </label>
+                </div>
+                <div className="checkboxLabels">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={inclOptimizations}
+                            onChange={handleOptimizations}
+                        />
+                        Optimizations
+                    </label>
+                </div>
+                <div className="checkboxLabels">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={inclStyle}
+                            onChange={handleStyle}
+                        />
+                        Style
+                    </label>
+                </div>
+            </div>
 
             {isLoading && (
                 <div>

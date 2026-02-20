@@ -1,0 +1,38 @@
+.filterCheckboxes {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start; /* Aligns the group to the left edge */
+    gap: 8px; /* Adds a little breathing room between the rows */
+    margin-top: 10px;
+}
+
+/* Target the label itself to align the input and the text */
+.checkboxLabels label {
+    display: flex;
+    align-items: center; 
+    font-family: Menlo, Monaco, 'Courier New', monospace;
+    gap: 6px; /* Adds space between the checkbox and the word */
+    cursor: pointer; /* Makes it obvious the whole label is clickable */
+}
+
+/* Reset default browser margins on the checkbox */
+.checkboxLabels input[type="checkbox"] {
+    margin: 0;
+}
+
+.analyzeButton {
+    width: 100%;
+    padding: 8px;
+    background-color: #007acc;
+    color: white;
+}
+.analyzeButton:hover {
+    background-color: #0e639c; 
+}
+
+.analyzeText {
+    width: 100%; 
+    margin-bottom: 10px; 
+    font: Menlo;
+}

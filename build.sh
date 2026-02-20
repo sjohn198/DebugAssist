@@ -6,7 +6,7 @@ set -e
 if [ "$1" = "--render" ]; then
   echo "🚀 Booting in Cloud Mode: Pointing to Render backend..."
   # Replace this with your actual Render URL
-  export BACKEND_URL="https://your-app-name.onrender.com/api/test-openai"
+  export BACKEND_URL="https://debug-assist-backend.onrender.com"
 else
   docker compose down --remove-orphans
 

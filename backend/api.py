@@ -35,7 +35,7 @@ async def connect_extension(selection: Selection):
     print(selection.code)
     return {"message": f"Successfully received prompt: '{selection.prompt}' and code: '{selection.code}"}
 
-@app.post("/api/test-openai")
+@app.post("/api/analyze")
 async def test_openai(selection: Selection):
     print(selection)
     try:

@@ -77,6 +77,8 @@ export default class SideBarProvider implements vscode.WebviewViewProvider {
 
                 switch (command) {
                     case 'sendMessage':
+                        const targetUri: string = process.env.BACKEND_URL || "http://localhost:8000";
+
                         vscode.window.showInformationMessage(`You sent ${prompt}`);
                         let code: string = await vscode.commands.executeCommand<string>('debugAssist.getText');
 
@@ -93,7 +95,7 @@ export default class SideBarProvider implements vscode.WebviewViewProvider {
                                 console.log(`Optims: ${optims}`);
                                 console.log(`Style: ${style}`);
                                 const response: AxiosResponse<ExtensionConnectResponse> = await axios.post(
-                                    'http://localhost:8000/api/test-openai',
+                                    `${targetUri}/api/analyze`,
                                     { 
                                         prompt: prompt,
                                         code: code,

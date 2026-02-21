@@ -11,3 +11,5 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 node_modules/**
 build.ts
+
+.env

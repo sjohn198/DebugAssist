@@ -3,8 +3,14 @@
   "displayName": "debugassist",
   "description": "While powerful, agentic AI tools like Cursor can abstract away the debugging process, limiting learning opportunities. Our tool offers a more balanced approach, providing targeted assistance to augment—not automate—a developer's understanding.",
   "version": "0.0.1",
+  "publisher": "smajohn12",
+  "readme": "README_MARKETPLACE.md",
   "engines": {
     "vscode": "^1.104.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sethjohnson/DebugAssist"
   },
   "categories": [
     "Other"
@@ -13,6 +19,7 @@
     ""
   ],
   "main": "./out/extension.js",
+  "icon": "DebugAssistLogoCrop.png",
   "contributes": {
     "commands": [
       {

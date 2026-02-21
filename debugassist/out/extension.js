@@ -15198,6 +15198,7 @@ var SideBarProvider = class {
         const style = info.style;
         switch (command) {
           case "sendMessage":
+            const targetUri = process.env.BACKEND_URL || "http://localhost:8000";
             vscode.window.showInformationMessage(`You sent ${prompt}`);
             let code = await vscode.commands.executeCommand("debugAssist.getText");
             console.log(`String in send message: ${code}`);
@@ -15213,7 +15214,7 @@ var SideBarProvider = class {
                 console.log(`Optims: ${optims}`);
                 console.log(`Style: ${style}`);
                 const response = await axios_default.post(
-                  "http://localhost:8000/api/test-openai",
+                  `${targetUri}/api/analyze`,
                   {
                     prompt,
                     code,
